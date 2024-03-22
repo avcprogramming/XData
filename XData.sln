@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34525.116
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XData", "XData.csproj", "{9AAD1400-C9D5-4B4B-9A93-891B228C0BAB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9AAD1400-C9D5-4B4B-9A93-891B228C0BAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9AAD1400-C9D5-4B4B-9A93-891B228C0BAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9AAD1400-C9D5-4B4B-9A93-891B228C0BAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9AAD1400-C9D5-4B4B-9A93-891B228C0BAB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {02AD04DB-FD64-45FF-9359-5DFBF44949FB}
+	EndGlobalSection
+EndGlobal
