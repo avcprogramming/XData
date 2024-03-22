@@ -23,12 +23,13 @@ namespace AVC
   /// <summary>
   /// Работа с DBObject.XData
   /// </summary>
-  internal class 
+  internal class
   XDataMan
   {
     [Browsable(false)]
-    public virtual string 
-    XDAppName { get; private set; } // надо перегрузить у потомков!
+    public virtual string
+    XDAppName
+    { get; private set; } // надо перегрузить у потомков!
 
     /// <summary>
     /// Надо переопределить у наследников чтоб хранить не буфер, а конкретные свойства.
@@ -39,18 +40,18 @@ namespace AVC
     Buffer
     { get; set; }
 
-    public 
+    public
     XDataMan()
     {
     }
 
-    public 
+    public
     XDataMan(ObjectId id, Transaction tr)
     {
       ReadFrom(id, tr);
     }
 
-    public 
+    public
     XDataMan(DBObject obj)
     {
       if (obj is null) return;
@@ -60,14 +61,14 @@ namespace AVC
     /// <summary>
     /// Очистка полей данных. Надо переопределить у наследников
     /// </summary>
-    public virtual void 
+    public virtual void
     Clear()
     { }
 
     /// <summary>
     /// Считывание данных из объекта чертежа
     /// </summary>
-    public bool 
+    public bool
     ReadFrom(DBObject obj)
     {
       Clear();
@@ -82,7 +83,7 @@ namespace AVC
     /// Считывание данных из объекта чертежа
     /// При необходимости Создает транзакцию
     /// </summary>
-    public bool 
+    public bool
     ReadFrom(ObjectId id, Transaction tr)
     {
       Clear();
@@ -99,7 +100,7 @@ namespace AVC
     /// Вызывает RegApp, если объект сохранен в БД. Иначе надо вызывать RegApp заранее.
     /// Если объект был открыт для чтения - откроет для записи.
     /// </summary>
-    public void 
+    public void
     SaveTo(DBObject obj, Transaction tr)
     {
       if (obj is null || obj.IsErased || obj.IsDisposed) return;
@@ -114,7 +115,7 @@ namespace AVC
     /// При необходимости Создает транзакцию
     /// Вызывает RegApp
     /// </summary>
-    public void 
+    public void
     SaveTo(ObjectId id, Transaction tr)
     {
       if (id.IsNull || id.Database is null) return;
@@ -130,7 +131,7 @@ namespace AVC
     /// <summary>
     /// Регистрация приложения для использования XData в заданной базе данных чертежа. Если db не задана - используется текущий чертеж
     /// </summary>
-    public bool 
+    public bool
     RegApp(Database db, Transaction tr)
     {
       if (string.IsNullOrWhiteSpace(XDAppName)) return false;
@@ -151,7 +152,7 @@ namespace AVC
     /// Регистрация приложения в текущем документе для использования XData
     /// Создает транзакцию и блокирует текущий чертеж
     /// </summary>
-    public bool 
+    public bool
     RegApp(Transaction tr)
     {
       if (string.IsNullOrWhiteSpace(XDAppName)) return false;
@@ -165,7 +166,7 @@ namespace AVC
     /// <summary>
     /// Получить все значения xData в виде массива. В ячейке 0 будет имя приложения
     /// </summary>
-    public TypedValue[] 
+    public TypedValue[]
     GetArray(DBObject obj)
     {
       using ResultBuffer rb = obj.GetXDataForApplication(XDAppName);
@@ -178,7 +179,7 @@ namespace AVC
     /// </summary>
     /// <param name="obj"></param>
     /// <param name="index">нулевой элемент - это имя приложения</param>
-    public object 
+    public object
     GetValue(DBObject obj, int index)
     {
       if (obj.XData is null) return null;
@@ -195,7 +196,7 @@ namespace AVC
     /// Вызывает RegApp
     /// </summary>
     /// <returns>успех</returns>
-    public bool 
+    public bool
     SetValue(DBObject obj, int index, object value, Transaction tr)
     {
       if (obj.XData is null) return false;
@@ -219,29 +220,20 @@ namespace AVC
     /// При необходимости Создает транзакцию и блокирует текущий чертеж
     /// Вызывает RegApp
     /// </summary>
-    public void 
+    public void
     ClearXData(ObjectId objId, Transaction tr)
     {
-      try
-      {
-        if (objId.IsNull || objId.IsErased || !objId.IsValid) return;
-        DBObject obj = tr.GetObject(objId, OpenMode.ForWrite, false, true);
-        if (obj is null) return;
-        ClearXData(obj, tr);
-      }
-      catch //eOnLockedLayer
-      {
-        tr.Abort();
-        Cns.Err("Объект не доступен для записи. Вероятно заблокирован слой.");
-        return;
-      }
+      if (objId.IsNull || objId.IsErased || !objId.IsValid) return;
+      DBObject obj = tr.GetObject(objId, OpenMode.ForWrite, false, true);
+      if (obj is null) return;
+      ClearXData(obj, tr);
     }
 
     /// <summary>
     /// Очищает xData только для заданного приложения, остальные xData сохраняются
     /// Вызывает RegApp
     /// </summary>
-    public void 
+    public void
     ClearXData(DBObject obj, Transaction tr)
     {
       ResultBuffer rb = obj.GetXDataForApplication(XDAppName);
@@ -259,7 +251,7 @@ namespace AVC
     /// Проверка наличия xData у объекта. Проверяется только наличие XDAppName
     /// RegApp должен быть вызван заранее
     /// </summary>
-    public bool 
+    public bool
     HasXData(DBObject obj)
     {
       if (obj is null) return false;
@@ -271,15 +263,15 @@ namespace AVC
     /// Проверка наличия xData у объекта. Проверяется только наличие XDAppName
     /// Использует существующую транзакцию, если она была создана до вызова
     /// </summary>
-    public bool 
+    public bool
     HasXData(ObjectId objId, Transaction tr) => HasXData(tr.GetObject(objId, OpenMode.ForRead));
-  
 
-    public ResultBuffer 
+
+    public ResultBuffer
     NewXData() => new(new TypedValue((int)DxfCode.ExtendedDataRegAppName, XDAppName));
-    
 
-    public override int 
+
+    public override int
     GetHashCode()
     {
       ResultBuffer b = Buffer;
@@ -287,7 +279,7 @@ namespace AVC
       return b.GetHashCode();
     }
 
-    public override bool 
+    public override bool
     Equals(object obj)
     {
       ResultBuffer b = Buffer;
@@ -305,41 +297,41 @@ namespace AVC
             return false;
         return true;
 #else
-        return Buffer.Equals(xd.Buffer); 
+        return Buffer.Equals(xd.Buffer);
 #endif
       }
       return false;
     }
 
-    public static bool 
+    public static bool
     operator ==(XDataMan a, XDataMan b)
     {
       if (a is null) return b is null;
       return a.Equals(b);
     }
 
-    public static bool 
+    public static bool
     operator !=(XDataMan a, XDataMan b) => !(a == b);
-    
+
 
   }
 
-  internal static class 
+  internal static class
   ResultBufferExt
   {
-    public static void 
+    public static void
     AddVal(this ResultBuffer rb, int value)
     {
       rb.Add(new TypedValue((int)DxfCode.ExtendedDataInteger32, value));
     }
 
-    public static void 
+    public static void
     AddVal(this ResultBuffer rb, string value)
     {
       rb.Add(new TypedValue((int)DxfCode.ExtendedDataAsciiString, value));
     }
 
-    public static void 
+    public static void
     AddVal(this ResultBuffer rb, double value)
     {
       rb.Add(new TypedValue((int)DxfCode.ExtendedDataReal, value));
@@ -354,7 +346,7 @@ namespace AVC
     public static void
     AddVal(this ResultBuffer rb, double x, double y, double z)
     {
-      rb.AddVal(new Point3d(x,y,z));
+      rb.AddVal(new Point3d(x, y, z));
     }
 
     public static void
@@ -375,19 +367,19 @@ namespace AVC
       rb.AddVal(result);
     }
 
-    public static void 
+    public static void
     AddVal(this ResultBuffer rb, ObjectId value)
     {
       rb.Add(new TypedValue((int)DxfCode.ExtendedDataHandle, value.Handle));
     }
 
-    public static void 
+    public static void
     AddVal(this ResultBuffer rb, Guid value)
     {
       rb.Add(new TypedValue((int)DxfCode.ExtendedDataAsciiString, value.ToString()));
     }
 
-    public static ObjectId 
+    public static ObjectId
     GetObjectId(this TypedValue[] arr, int index, Database db)
     {
       if (arr.Length >= index + 1 && arr[index].Value is Handle handle && db.TryGetObjectId(handle, out ObjectId id))
