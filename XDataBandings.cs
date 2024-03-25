@@ -4,25 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using OfficeOpenXml.FormulaParsing.Excel.Functions.Text;
-
 #if BRICS
-using Bricscad.ApplicationServices;
 using Teigha.DatabaseServices;
-using Bricscad.EditorInput;
-using Teigha.Geometry;
-using Teigha.Runtime;
 using CadApp = Bricscad.ApplicationServices.Application;
 using Rt = Teigha.Runtime;
 #else
-using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.EditorInput;
-using Autodesk.AutoCAD.Geometry;
-using Autodesk.AutoCAD.Runtime;
 using CadApp = Autodesk.AutoCAD.ApplicationServices.Application;
 using Rt = Autodesk.AutoCAD.Runtime;
 #endif
