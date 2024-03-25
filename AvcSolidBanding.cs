@@ -43,6 +43,20 @@ namespace AVC
     { get; set; } = 0;
 
     /// <summary>
+    /// Стороны прямоугольной детали на выкладке
+    /// </summary>
+    public EdgeSide
+    Side
+    { get; set; } = EdgeSide.Other;
+
+    /// <summary>
+    /// Index + Side. Специальный цифровой индекс для индексирования подстановок 
+    /// (так как нельзя индекситовать подстановки текстом, то Letter не годится).
+    /// </summary>
+    public int
+    SideIndex => Index + (int)Side;
+
+    /// <summary>
     /// Обозначение кромки используемое как ее название. Одна буква или индекс или длина
     /// </summary>
     public string
