@@ -81,13 +81,12 @@ namespace AVC
 
     /// <summary>
     /// Считывание данных из объекта чертежа
-    /// При необходимости Создает транзакцию
     /// </summary>
     public bool
     ReadFrom(ObjectId id, Transaction tr)
     {
       Clear();
-      if (id.IsNull || id.Database is null) return false;
+      if (id.IsNull || id.Database is null || tr is null) return false;
       DBObject obj;
       try { obj = tr.GetObject(id, OpenMode.ForRead); }
       catch (Rt.Exception ex) { if (ex.ErrorStatus == Rt.ErrorStatus.PermanentlyErased) return false; else throw; }
@@ -96,15 +95,16 @@ namespace AVC
     }
 
     /// <summary>
-    /// Запись имеющихся данных в объекта чертежа.
-    /// Вызывает RegApp, если объект сохранен в БД. Иначе надо вызывать RegApp заранее.
+    /// Запись имеющихся данных в объект чертежа obj.
+    /// Вызывает RegApp для регистрации в db.
+    /// Объект может быть еще не сохранен в БД.
     /// Если объект был открыт для чтения - откроет для записи.
     /// </summary>
     public void
-    SaveTo(DBObject obj, Transaction tr)
+    SaveTo(DBObject obj, Database db, Transaction tr)
     {
       if (obj is null || obj.IsErased || obj.IsDisposed) return;
-      RegApp(obj.Database, tr);
+      RegApp(db, tr);
       if (!obj.IsWriteEnabled && !obj.ObjectId.IsNull)
         tr.GetObject(obj.ObjectId, OpenMode.ForWrite, false, true); // замена UpgradeOpen https://forums.autodesk.com/t5/net/api-bug-2018-1-causes-crash-using-upgradeopen-on-dependent/m-p/7272262/highlight/true
       obj.XData = Buffer;
@@ -127,7 +127,6 @@ namespace AVC
       }
     }
 
-
     /// <summary>
     /// Регистрация приложения для использования XData в заданной базе данных чертежа. Если db не задана - используется текущий чертеж
     /// </summary>
@@ -135,7 +134,7 @@ namespace AVC
     RegApp(Database db, Transaction tr)
     {
       if (string.IsNullOrWhiteSpace(XDAppName)) return false;
-      if (db is null) return RegApp(tr);
+      if (db is null) return RegApp();
       RegAppTable rTbl = tr.GetObject(db.RegAppTableId, OpenMode.ForRead) as RegAppTable;
       if (!rTbl.Has(XDAppName))
       {
@@ -150,17 +149,25 @@ namespace AVC
 
     /// <summary>
     /// Регистрация приложения в текущем документе для использования XData
-    /// Создает транзакцию и блокирует текущий чертеж
+    /// По необходимости создает транзакцию и блокирует текущий чертеж
     /// </summary>
     public bool
-    RegApp(Transaction tr)
+    RegApp()
     {
       if (string.IsNullOrWhiteSpace(XDAppName)) return false;
       Document doc = CadApp.DocumentManager.MdiActiveDocument;
       if (doc is null) return false;
       Database db = doc.Database;
       using (doc.LockIfNone("XDAppName"))
-        return RegApp(db, tr);
+        if (db.TransactionManager.TopTransaction is null)
+        {
+          using Transaction tr = db.TransactionManager.StartTransaction();
+          bool ret = RegApp(db, tr);
+          tr.Commit();
+          return ret;
+        }
+        else
+          return RegApp(db, db.TransactionManager.TopTransaction);
     }
 
     /// <summary>
@@ -217,7 +224,6 @@ namespace AVC
 
     /// <summary>
     /// Очищает xData только для заданного приложения, остальные xData сохраняются
-    /// При необходимости Создает транзакцию и блокирует текущий чертеж
     /// Вызывает RegApp
     /// </summary>
     public void
@@ -226,22 +232,23 @@ namespace AVC
       if (objId.IsNull || objId.IsErased || !objId.IsValid) return;
       DBObject obj = tr.GetObject(objId, OpenMode.ForWrite, false, true);
       if (obj is null) return;
-      ClearXData(obj, tr);
+      ClearXData(obj, objId.Database, tr);
     }
 
     /// <summary>
     /// Очищает xData только для заданного приложения, остальные xData сохраняются
-    /// Вызывает RegApp
+    /// Вызывает RegApp в базу данных db.
+    /// obj может быть еще не сохранен в базе данных.
     /// </summary>
     public void
-    ClearXData(DBObject obj, Transaction tr)
+    ClearXData(DBObject obj, Database db, Transaction tr)
     {
       ResultBuffer rb = obj.GetXDataForApplication(XDAppName);
       if (rb != null)
       {
         if (!obj.IsWriteEnabled && !obj.ObjectId.IsNull)
           tr.GetObject(obj.ObjectId, OpenMode.ForWrite, false, true); // замена UpgradeOpen https://forums.autodesk.com/t5/net/api-bug-2018-1-causes-crash-using-upgradeopen-on-dependent/m-p/7272262/highlight/true
-        RegApp(obj.Database, tr);
+        RegApp(db, tr);
         obj.XData = NewXData();
         rb.Dispose();
       }
@@ -289,7 +296,7 @@ namespace AVC
 #if BRICS // хотя Equals переопределен у ResultBuffer, но не работает, всегда true
         ResultBuffer other = xd.Buffer;
         if (other is null) return false;
-      TypedValue[] arr1 = b.AsArray();
+        TypedValue[] arr1 = b.AsArray();
         TypedValue[] arr2 = other.AsArray();
         if (arr1.Length != arr2.Length) return false;
         for (int i = 0; i < arr1.Length; i++)
@@ -316,47 +323,51 @@ namespace AVC
 
   }
 
+  //================================================================================================================================
+
   internal static class
   ResultBufferExt
   {
+    #region Запись в XData
+
     public static void
-    AddVal(this ResultBuffer rb, int value)
+    AddData(this ResultBuffer rb, int value)
     {
       rb.Add(new TypedValue((int)DxfCode.ExtendedDataInteger32, value));
     }
 
     public static void
-    AddVal(this ResultBuffer rb, string value)
+    AddData(this ResultBuffer rb, string value)
     {
       rb.Add(new TypedValue((int)DxfCode.ExtendedDataAsciiString, value));
     }
 
     public static void
-    AddVal(this ResultBuffer rb, double value)
+    AddData(this ResultBuffer rb, double value)
     {
       rb.Add(new TypedValue((int)DxfCode.ExtendedDataReal, value));
     }
 
     public static void
-    AddVal(this ResultBuffer rb, Point3d value)
+    AddData(this ResultBuffer rb, Point3d value)
     {
       rb.Add(new TypedValue((int)DxfCode.ExtendedDataXCoordinate, value));
     }
 
     public static void
-    AddVal(this ResultBuffer rb, double x, double y, double z)
+    AddData(this ResultBuffer rb, double x, double y, double z)
     {
-      rb.AddVal(new Point3d(x, y, z));
+      rb.AddData(new Point3d(x, y, z));
     }
 
     public static void
-    AddVal(this ResultBuffer rb, byte[] value)
+    AddData(this ResultBuffer rb, byte[] value)
     {
       rb.Add(new TypedValue((int)DxfCode.ExtendedDataBinaryChunk, value));
     }
 
     public static void
-    AddVal(this ResultBuffer rb, Matrix3d value)
+    AddData(this ResultBuffer rb, Matrix3d value)
     {
       double[] matrix4x3 = new double[]{
           value[0, 0], value[0, 1], value[0, 2], value[0, 3],
@@ -364,23 +375,93 @@ namespace AVC
           value[2, 0], value[2, 1], value[2, 2], value[2, 3] }; // в четвертой строке всегда 0,0,0,1 - нет смысла сохранять
       byte[] result = new byte[4 * 3 * sizeof(double)];
       System.Buffer.BlockCopy(matrix4x3, 0, result, 0, result.Length);
-      rb.AddVal(result);
+      rb.AddData(result);
     }
 
     public static void
-    AddVal(this ResultBuffer rb, ObjectId value)
+    AddData(this ResultBuffer rb, ObjectId value)
     {
       rb.Add(new TypedValue((int)DxfCode.ExtendedDataHandle, value.Handle));
     }
 
     public static void
-    AddVal(this ResultBuffer rb, Guid value)
+    AddData(this ResultBuffer rb, Guid value)
     {
       rb.Add(new TypedValue((int)DxfCode.ExtendedDataAsciiString, value.ToString()));
     }
 
+    #endregion
+
+    // ===========================================================================================================================
+    #region Запись в XRecord
+
+    public static void
+    AddRecord(this ResultBuffer rb, int value)
+    {
+      rb.Add(new TypedValue((int)DxfCode.Int32, value));
+    }
+
+    public static void
+    AddRecord(this ResultBuffer rb, string value)
+    {
+      rb.Add(new TypedValue((int)DxfCode.Text, value));
+    }
+
+    public static void
+    AddRecord(this ResultBuffer rb, double value)
+    {
+      rb.Add(new TypedValue((int)DxfCode.Real, value));
+    }
+
+    public static void
+    AddRecord(this ResultBuffer rb, Point3d value)
+    {
+      rb.Add(new TypedValue((int)DxfCode.XCoordinate, value));
+    }
+
+    public static void
+    AddRecord(this ResultBuffer rb, double x, double y, double z)
+    {
+      rb.AddData(new Point3d(x, y, z));
+    }
+
+    public static void
+    AddRecord(this ResultBuffer rb, byte[] value)
+    {
+      rb.Add(new TypedValue((int)DxfCode.BinaryChunk, value));
+    }
+
+    public static void
+    AddRecord(this ResultBuffer rb, Matrix3d value)
+    {
+      double[] matrix4x3 = new double[]{
+          value[0, 0], value[0, 1], value[0, 2], value[0, 3],
+          value[1, 0], value[1, 1], value[1, 2], value[1, 3],
+          value[2, 0], value[2, 1], value[2, 2], value[2, 3] }; // в четвертой строке всегда 0,0,0,1 - нет смысла сохранять
+      byte[] result = new byte[4 * 3 * sizeof(double)];
+      System.Buffer.BlockCopy(matrix4x3, 0, result, 0, result.Length);
+      rb.AddRecord(result);
+    }
+
+    public static void
+    AddRecord(this ResultBuffer rb, ObjectId value)
+    {
+      rb.Add(new TypedValue((int)DxfCode.HardPointerId, value));
+    }
+
+    public static void
+    AddRecord(this ResultBuffer rb, Guid value)
+    {
+      rb.Add(new TypedValue((int)DxfCode.Text, value.ToString()));
+    }
+
+    #endregion
+
+
+    //=============================================================================================================================
+
     public static ObjectId
-    GetObjectId(this TypedValue[] arr, int index, Database db)
+    GetIdFromHandle(this TypedValue[] arr, int index, Database db)
     {
       if (arr.Length >= index + 1 && arr[index].Value is Handle handle && db.TryGetObjectId(handle, out ObjectId id))
         return id;

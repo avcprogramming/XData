@@ -17,7 +17,7 @@ using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Runtime;
 using CadApp = Autodesk.AutoCAD.ApplicationServices.Application;
-using Rt =  Autodesk.AutoCAD.Runtime;
+using Rt = Autodesk.AutoCAD.Runtime;
 #endif
 
 namespace AVC
@@ -25,40 +25,41 @@ namespace AVC
   /// <summary>
   /// Хранение имен солидов и др объектов чертежа в XData
   /// </summary>
-  internal class 
+  internal class
   XDataTbSplit : XDataMan
   {
 
     [Browsable(false)]
-    public override string 
-    XDAppName { get { return "AVCTbSplit"; } }
+    public override string
+    XDAppName => "AVCTbSplit"; 
 
     [Browsable(false)]
-    public Guid 
-    Guid { get; set; }
+    public Guid
+    Guid
+    { get; set; }
 
-    public int 
-    Section { get; set; } // номер раздела с 1
+    public int
+    Section
+    { get; set; } // номер раздела с 1
 
-    public bool 
-    IsNull => Guid == Guid.Empty; 
+    public bool
+    IsNull => Guid == Guid.Empty;
 
-
-    public 
+    public
     XDataTbSplit() : base()
     { }
 
-    public 
+    public
     XDataTbSplit(Guid guid, int section) : base()
     {
-      Guid = guid; Section = section; 
+      Guid = guid; Section = section;
     }
 
     /// <summary>
     /// Чтение xData из объекта чертежа и сохранение данных в свойствах 
     /// </summary>
     /// <param name="id"></param>
-    public 
+    public
     XDataTbSplit(ObjectId id, Transaction tr) : base(id, tr)
     { }
 
@@ -66,21 +67,21 @@ namespace AVC
     /// Чтение xData из объекта чертежа и сохранение данных в свойствах 
     /// </summary>
     /// <param name="id"></param>
-    public 
+    public
     XDataTbSplit(DBObject obj) : base(obj)
     { }
 
     /// <summary>
     /// Для записи xData используем DBObject.XData = Buffer, для чтения Buffer = DBObject.GetXDataForApplication(XDAppName)
     /// </summary>
-    public override ResultBuffer 
+    public override ResultBuffer
     Buffer
     {
       get
       {
         ResultBuffer buffer = NewXData(); // Первое поле - AppName
-        buffer.AddVal(Guid);
-        buffer.AddVal(Section);
+        buffer.AddData(Guid);
+        buffer.AddData(Section);
         return buffer;
       }
       set
@@ -92,10 +93,10 @@ namespace AVC
         if (arr.Length >= 3 && arr[2].Value is int i)
           Section = i;
       }
-      
+
     }
 
-    public override void 
+    public override void
     Clear()
     {
       Guid = Guid.Empty;
@@ -107,7 +108,7 @@ namespace AVC
     /// </summary>
     /// <param name="BTRId"></param>
     /// <param name="tr"></param>
-    public void 
+    public void
     ClearAllTables(ObjectId BTRId, Transaction tr)
     {
       if (BTRId.IsNull || BTRId.IsErased) return;
@@ -119,7 +120,7 @@ namespace AVC
             if (tb != null)
             {
               XDataTbSplit xD = new(tb);
-              if (!xD.IsNull) xD.ClearXData(tb, tr);
+              if (!xD.IsNull) xD.ClearXData(tb, id.Database, tr);
             }
     }
 

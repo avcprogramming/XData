@@ -24,61 +24,75 @@ namespace AVC
 {
 
   [Flags]
-  internal enum 
+  internal enum
   MaterialEnum
   {
     Grain = 1, // материал имеет текстуру вдоль длинной стороны
   }
 
   /// <summary>
-  /// Хранение данных о материале в XData объектов Material
+  /// Хранение данных о материале в XData объектов MaterialId
   /// </summary>
-  internal class 
+  internal class
   XDataMaterial : XDataMan
   {
-    public override string XDAppName { get { return "AVCMaterial"; } }
+    public override string 
+    XDAppName => "AVCMaterial"; 
 
-    public MatUseLike 
-    Use { get; set; }
+    public MatUseLike
+    Use
+    { get; set; }
 
-    public double 
-    Density { get; set; } // плотность на кубометр/кубический дюйм
+    public double
+    Density
+    { get; set; } // плотность на кубометр/кубический дюйм
 
-    public double 
-    Length { get; set; }
+    public double
+    Length
+    { get; set; }
 
-    public double 
-    Width { get; set; }
+    public double
+    Width
+    { get; set; }
 
-    public double 
-    Thickness { get; set; }
+    public double
+    Thickness
+    { get; set; }
 
-    public string 
-    Index { get; set; }
+    public string
+    Index
+    { get; set; }
 
-    public string 
-    Article { get; set; }
+    public string
+    Article
+    { get; set; }
 
-    public double 
-    Price { get; set; } // цена материала в зависимости от Use - за погонный, квадратный или кубический метр (в миллиметровом череже, в прочих - в текущих единицах)
+    public double
+    Price
+    { get; set; } // цена материала в зависимости от Use - за погонный, квадратный или кубический метр (в миллиметровом череже, в прочих - в текущих единицах)
 
-    public MaterialEnum 
-    Flags { get; set; }
+    public MaterialEnum
+    Flags
+    { get; set; }
 
-    public string 
-    MillTool { get; set; }
+    public string
+    MillTool
+    { get; set; }
 
-    public string 
-    MillMode { get; set; }
+    public string
+    MillMode
+    { get; set; }
 
-    public string 
-    SawTool { get; set; }
+    public string
+    SawTool
+    { get; set; }
 
-    public string 
-    SawMode { get; set; }
+    public string
+    SawMode
+    { get; set; }
 
 
-    public 
+    public
     XDataMaterial() : base()
     { }
 
@@ -86,7 +100,7 @@ namespace AVC
     /// Чтение xData из объекта чертежа и сохранение данных в свойствах 
     /// </summary>
     /// <param name="id"></param>
-    public 
+    public
     XDataMaterial(ObjectId id, Transaction tr) : base(id, tr)
     { }
 
@@ -94,32 +108,32 @@ namespace AVC
     /// Чтение xData из объекта чертежа и сохранение данных в свойствах 
     /// </summary>
     /// <param name="id"></param>
-    public 
+    public
     XDataMaterial(DBObject obj) : base(obj)
     { }
 
     /// <summary>
     /// Для записи xData используем DBObject.XData = Buffer, для чтения Buffer = DBObject.GetXDataForApplication(XDAppName)
     /// </summary>
-    public override ResultBuffer 
+    public override ResultBuffer
     Buffer
     {
       get
       {
         ResultBuffer buffer = NewXData(); // Первое поле - AppName
-        buffer.AddVal((int)Use);
-        buffer.AddVal(Density);
-        buffer.AddVal(Length);
-        buffer.AddVal(Width);
-        buffer.AddVal(Thickness);
-        buffer.AddVal(Index);
-        buffer.AddVal(Article);
-        buffer.AddVal(Price);
-        buffer.AddVal((int)Flags);
-        buffer.AddVal(MillTool);
-        buffer.AddVal(MillMode);
-        buffer.AddVal(SawTool);
-        buffer.AddVal(SawMode);
+        buffer.AddData((int)Use);
+        buffer.AddData(Density);
+        buffer.AddData(Length);
+        buffer.AddData(Width);
+        buffer.AddData(Thickness);
+        buffer.AddData(Index);
+        buffer.AddData(Article);
+        buffer.AddData(Price);
+        buffer.AddData((int)Flags);
+        buffer.AddData(MillTool);
+        buffer.AddData(MillMode);
+        buffer.AddData(SawTool);
+        buffer.AddData(SawMode);
         return buffer;
       }
       set
@@ -142,7 +156,7 @@ namespace AVC
       }
     }
 
-    public override void 
+    public override void
     Clear()
     {
       Use = MatUseLike.Volume;

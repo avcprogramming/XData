@@ -36,27 +36,27 @@ namespace AVC
   /// Хранит список идентификаторов, длин, углов пила и площадей всех поверхностей солида, смежных с фасадной поверхностью. 
   /// Материал покрытия следует получать из самого солида - считанные из xData AvcSolidBanding не содержат информацию о материале.
   /// </summary>
-  internal class 
+  internal class
   XDataBandings : XDataMan
   {
 
-    public List<AvcSolidBanding> 
+    public List<AvcSolidBanding>
     Bandings = new();
 
     public ObjectId
     OwnerId;
 
-    public override string 
+    public override string
     XDAppName => "AVCBandings";
 
-    public 
+    public
     XDataBandings() : base()
     { }
 
-    public 
+    public
     XDataBandings(List<AvcSolidBanding> bandings) : base()
-    { 
-      if (bandings is null) return; 
+    {
+      if (bandings is null) return;
       Bandings = bandings;
       if (bandings is not null && bandings.Count > 0)
         OwnerId = bandings[0].OwnerId;
@@ -66,7 +66,7 @@ namespace AVC
     /// Чтение xData из объекта чертежа и сохранение данных в Bandings. Материалы не считываются  
     /// </summary>
     /// <param name="id"></param>
-    public 
+    public
     XDataBandings(ObjectId id, Transaction tr)
     {
       OwnerId = id;
@@ -77,7 +77,7 @@ namespace AVC
     /// Чтение xData из объекта чертежа и сохранение данных в Bandings. Материалы не считываются 
     /// </summary>
     /// <param name="id"></param>
-    public 
+    public
     XDataBandings(DBObject obj)
     {
       if (obj is null) return;
@@ -85,13 +85,13 @@ namespace AVC
       ReadFrom(obj);
     }
 
-    public const int 
+    public const int
     BufferLength = 6;
 
     /// <summary>
     /// Для записи xData используем DBObject.XData = Buffer, для чтения Buffer = DBObject.GetXDataForApplication(XDAppName)
     /// </summary>
-    public override ResultBuffer 
+    public override ResultBuffer
     Buffer
     {
       get
@@ -99,12 +99,12 @@ namespace AVC
         ResultBuffer buffer = NewXData(); // Первое поле - AppName
         foreach (AvcSolidBanding banding in Bandings)
         {
-          buffer.AddVal(banding.IntId);
-          buffer.AddVal(banding.Area);
-          buffer.AddVal(banding.Length);
-          buffer.AddVal(banding.Angle);
-          buffer.AddVal(banding.Letter);
-          buffer.AddVal(banding.SideIndex);
+          buffer.AddData(banding.IntId);
+          buffer.AddData(banding.Area);
+          buffer.AddData(banding.Length);
+          buffer.AddData(banding.Angle);
+          buffer.AddData(banding.Letter);
+          buffer.AddData(banding.SideIndex);
         }
         return buffer;
       }
@@ -113,7 +113,7 @@ namespace AVC
         Clear();
         if (value is null) return;
         TypedValue[] arr = value.AsArray();
-        
+
         for (int i = 1; i < arr.Length; i += BufferLength)
         {
           AvcSolidBanding banding = new() { OwnerId = OwnerId };
@@ -125,7 +125,7 @@ namespace AVC
           if (arr.Length >= i + 6 && arr[i + 5].Value is int sideIndex)
           {
             banding.Side = GetSide(sideIndex);
-            banding.Index = GetIndex(sideIndex); 
+            banding.Index = GetIndex(sideIndex);
           }
           else break;
           Bandings.Add(banding);
@@ -134,7 +134,7 @@ namespace AVC
       }
     }
 
-    public override void 
+    public override void
     Clear()
     {
       Bandings.Clear();
@@ -163,7 +163,7 @@ namespace AVC
       int side = sideIndex - sideIndex % 1000;
       return IsSide(side) ? (EdgeSide)side : EdgeSide.Other;
     }
-    
+
     /// <summary>
     /// Преобразовать специальные индексы торцев в чистый индекс
     /// </summary>

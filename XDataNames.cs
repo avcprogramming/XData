@@ -15,7 +15,7 @@ namespace AVC
   /// набор свойств объектов чертежа типа ДА/НЕТ
   /// </summary>
   [Flags]
-  internal enum 
+  internal enum
   SolidFlags
   {
     None = 0,
@@ -34,10 +34,10 @@ namespace AVC
     /// <summary>
     /// Для солидов - текстура поперек, по короткой стороне
     /// </summary>
-    Across = 16 
+    Across = 16
   }
 
-  internal enum 
+  internal enum
   TextureAlong
   {
     Indeterminate = -1,
@@ -49,33 +49,37 @@ namespace AVC
   /// <summary>
   /// Хранение имен солидов и др объектов чертежа в XData
   /// </summary>
-  internal class 
+  internal class
   XDataNames : XDataMan
   {
 
     [Browsable(false)]
-    public override string 
-    XDAppName { get { return "AVCNames"; } }
+    public override string
+    XDAppName=> "AVCNames"; 
 
     /// <summary>
     /// Строковое имя объекта чертежа. Может содержать маску формата размеров солида для SolidMetric.ToString(Format) 
     /// </summary>
-    public string 
-    Name { get; set; }
+    public string
+    Name
+    { get; set; }
 
-    public SolidFlags 
-    Flags { get; set; }
+    public SolidFlags
+    Flags
+    { get; set; }
 
-    public string 
-    Kind { get; set; }
+    public string
+    Kind
+    { get; set; }
 
-    public string 
-    Info { get; set; }
+    public string
+    Info
+    { get; set; }
 
     /// <summary>
     /// Для подсчета количества одинаковых деталей - считать отдельно как зеркальные
     /// </summary>
-    public bool 
+    public bool
     Mirror
     {
       get { return Flags.HasFlag(SolidFlags.Mirror); }
@@ -91,7 +95,7 @@ namespace AVC
     /// <summary>
     /// Для солидов - обмерять как развертку
     /// </summary>
-    public bool 
+    public bool
     Sweep
     {
       get { return Flags.HasFlag(SolidFlags.Sweep); }
@@ -107,7 +111,7 @@ namespace AVC
     /// <summary>
     /// Для солидов - имеет направление волокон, текстуру
     /// </summary>
-    public bool 
+    public bool
     Textured
     {
       get { return Flags.HasFlag(SolidFlags.Textured); }
@@ -123,7 +127,7 @@ namespace AVC
     /// <summary>
     /// Для солидов - текстура поперек, по короткой стороне
     /// </summary>
-    public bool 
+    public bool
     Across
     {
       get { return Flags.HasFlag(SolidFlags.Across); }
@@ -139,7 +143,7 @@ namespace AVC
     /// <summary>
     /// Для солидов - текстура
     /// </summary>
-    public TextureAlong 
+    public TextureAlong
     Texture
     {
       get { return (TextureAlong)(Flags & (SolidFlags.Textured | SolidFlags.Across)); }
@@ -153,11 +157,11 @@ namespace AVC
       }
     }
 
-    public 
+    public
     XDataNames() : base()
     { }
 
-    public 
+    public
     XDataNames(string Name, SolidFlags Flags, string Kind = "", string Info = "") : base()
     { this.Name = Name; this.Flags = Flags; this.Info = Info; this.Kind = Kind; }
 
@@ -165,7 +169,7 @@ namespace AVC
     /// Чтение xData из объекта чертежа и сохранение данных в свойствах 
     /// </summary>
     /// <param name="id"></param>
-    public 
+    public
     XDataNames(ObjectId id, Transaction tr) : base(id, tr)
     { }
 
@@ -173,23 +177,23 @@ namespace AVC
     /// Чтение xData из объекта чертежа и сохранение данных в свойствах 
     /// </summary>
     /// <param name="id"></param>
-    public 
+    public
     XDataNames(DBObject obj) : base(obj)
     { }
 
     /// <summary>
     /// Для записи xData используем DBObject.XData = Buffer, для чтения Buffer = DBObject.GetXDataForApplication(XDAppName)
     /// </summary>
-    public override ResultBuffer 
+    public override ResultBuffer
     Buffer
     {
       get
       {
         ResultBuffer buffer = base.NewXData(); // Первое поле - AppName
-        buffer.AddVal(Name); // Второе - Имя
-        buffer.AddVal((int)Flags); // Третье - Флаги
-        buffer.AddVal(Kind);
-        buffer.AddVal(Info);
+        buffer.AddData(Name); // Второе - Имя
+        buffer.AddData((int)Flags); // Третье - Флаги
+        buffer.AddData(Kind);
+        buffer.AddData(Info);
         return buffer;
       }
       set
@@ -203,7 +207,7 @@ namespace AVC
       }
     }
 
-    public override void 
+    public override void
     Clear()
     {
       Name = "";
@@ -213,11 +217,11 @@ namespace AVC
     }
 
     /// <summary>
-    /// Инверсия одного бита в Flags
+    /// Инверсия одного бита в SubFlags
     /// </summary>
     /// <param name="bit"></param>
     /// <returns>результирующее значение этого бита после инверсии</returns>
-    public bool 
+    public bool
     InvertFlag(SolidFlags bit)
     {
       if ((Flags & bit) != 0) { Flags &= ~bit; return false; }

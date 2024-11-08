@@ -10,27 +10,31 @@ using Autodesk.AutoCAD.DatabaseServices;
 
 namespace AVC
 {
-  internal class 
+  internal class
   XDataUserProperty : XDataMan
   {
-    readonly string 
+    private readonly string
     _appName;
 
-    public const string 
+    public const string
     fieldNamePrefix = "AVCUserProperty";
 
     [Browsable(false)]
-    public override string 
-    XDAppName => fieldNamePrefix + _appName; 
+    public override string
+    XDAppName => fieldNamePrefix + _appName;
 
-    public string 
-    Value { get; set; }
+    /// <summary>
+    ///  == null значит надо использовать для свойства значение по умолчанию
+    /// </summary>
+    public string
+    Value
+    { get; set; }
 
-    public 
+    public
     XDataUserProperty(string propName, string value) : base()
     { _appName = DatabaseExt.ValidName(propName); Value = value ?? ""; }
 
-    public 
+    public
     XDataUserProperty(KeyValuePair<string, string> property) : base()
     { _appName = DatabaseExt.ValidName(property.Key); Value = property.Value ?? ""; }
 
@@ -38,7 +42,7 @@ namespace AVC
     /// Чтение xData из объекта чертежа и сохранение данных в свойствах 
     /// </summary>
     /// <param name="id"></param>
-    public 
+    public
     XDataUserProperty(string propName, ObjectId id, Transaction tr) : base()
     {
       _appName = DatabaseExt.ValidName(propName);
@@ -49,7 +53,7 @@ namespace AVC
     /// Чтение xData из объекта чертежа и сохранение данных в свойствах 
     /// </summary>
     /// <param name="id"></param>
-    public 
+    public
     XDataUserProperty(string propName, DBObject obj) : base()
     {
       _appName = DatabaseExt.ValidName(propName);
@@ -60,27 +64,27 @@ namespace AVC
     /// <summary>
     /// Для записи xData используем DBObject.XData = Buffer, для чтения Buffer = DBObject.GetXDataForApplication(XDAppName)
     /// </summary>
-    public override ResultBuffer 
+    public override ResultBuffer
     Buffer
     {
       get
       {
         ResultBuffer buffer = NewXData(); // Первое поле - AppName
-        buffer.AddVal(Value); 
+        buffer.AddData(Value);
         return buffer;
       }
       set
       {
-        if (value is null) { Clear(); return; }
+        if (value is null) { Clear(); return; } 
         TypedValue[] arr = value.AsArray();
         if (arr.Length >= 2 && arr[1].Value is string s2) Value = s2;
       }
     }
 
-    public override void 
-    Clear() 
+    public override void
+    Clear()
     {
-      Value = "";
+      Value = null; // Value == null значит надо использовать для свойства значение по умолчанию
     }
 
   }

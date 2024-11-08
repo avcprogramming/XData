@@ -70,6 +70,10 @@ namespace AVC
     /// фасадная поверхность задана цветом или покрытием или верхняя. Тело нельзя перевернуть, даже если оно симметрично
     /// </summary>
     HasPriorFace = 1 << 9,
+    /// <summary>
+    /// Круглая труба (цилиндр или тор)
+    /// </summary>
+    IsPipe = 1 << 10,
 
     TwoSideProcessing = FrontProcessing | RearProcessing
   }
@@ -142,7 +146,7 @@ namespace AVC
     /// </summary>
     public SolidMetricEnum
     Flags
-    { get; set; } 
+    { get; set; }
 
     /// <summary>
     /// Объем. в миллиметровом чертеже должен быть пересчитан в кубометры
@@ -196,10 +200,10 @@ namespace AVC
     { get; set; }
 
     /// <summary>
-    /// Метрика не обмерена или устарела
+    /// Метрика не обмерена. Или нулевой объем (у заблокированных метрик объем игнорируем)
     /// </summary>
     public bool
-    IsNull => NumChanges < 0 || Volume4Calc == 0;
+    IsNull => NumChanges < 0 || !Blocked && Volume4Calc == 0;
 
     /// <summary>
     /// Заблокирована запись метрики в XDataMetric при автоматическом обмере. 
@@ -231,7 +235,6 @@ namespace AVC
     /// Чтение xData из объекта чертежа и сохранение данных в свойствах. 
     /// Вернет пустую метрику XDataMetric.IsNull == true, если NumChanges солида изменился по сравнению с XDataMetric.NumChanges
     /// </summary>
-    /// <param name="id"></param>
     public
     XDataMetric(DBObject obj) : base(obj)
     {
@@ -249,21 +252,21 @@ namespace AVC
       get
       {
         ResultBuffer buffer = NewXData(); // Первое поле - AppName
-        buffer.AddVal(NumChanges);
-        buffer.AddVal(Length);
-        buffer.AddVal(Width);
-        buffer.AddVal(Thickness);
-        buffer.AddVal(Volume4Calc);
-        buffer.AddVal(Asymmetry);
-        buffer.AddVal(AsymmetryStr);
-        buffer.AddVal(Technology);
-        buffer.AddVal((int)Flags);
-        buffer.AddVal(Area4Calc);
-        buffer.AddVal(Perimeter4Calc);
-        buffer.AddVal(FaceCount);
-        buffer.AddVal(Weight);
-        buffer.AddVal(Cost);
-        buffer.AddVal(Lay);
+        buffer.AddData(NumChanges);
+        buffer.AddData(Length);
+        buffer.AddData(Width);
+        buffer.AddData(Thickness);
+        buffer.AddData(Volume4Calc);
+        buffer.AddData(Asymmetry);
+        buffer.AddData(AsymmetryStr);
+        buffer.AddData(Technology);
+        buffer.AddData((int)Flags);
+        buffer.AddData(Area4Calc);
+        buffer.AddData(Perimeter4Calc);
+        buffer.AddData(FaceCount);
+        buffer.AddData(Weight);
+        buffer.AddData(Cost);
+        buffer.AddData(Lay);
         return buffer;
       }
       set
@@ -312,14 +315,14 @@ namespace AVC
     /// Рекомендуется удалять метрику у модифицированных солидов, так как иногда не срабатывает проверка NumChanges
     /// </summary>
     public static void
-    Clear(Solid3d solid, Transaction tr)
+    Clear(Solid3d solid, Database db, Transaction tr)
     {
       XDataMetric xm = new();
-      xm.ClearXData(solid, tr);
+      xm.ClearXData(solid, db, tr);
       XDataCovers xc = new();
-      xc.ClearXData(solid, tr);
+      xc.ClearXData(solid, db, tr);
       XDataBandings xb = new();
-      xb.ClearXData(solid, tr);
+      xb.ClearXData(solid, db, tr);
     }
 
     /// <summary>
